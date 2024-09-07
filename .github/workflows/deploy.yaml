@@ -1,0 +1,27 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: |
+          #docker build . --file Dockerfile --tag my-image-name:$(date +%s) 
+          docker build . --file Dockerfile --tag goapp:wallet_api
+          docker save -o wallet_api.tar goapp:wallet_api
+          ls -rlt
+          chmod 600 ./deploy/id_rsa
+          scp -o StrictHostKeyChecking=no -i ./deploy/id_rsa wallet_api.tar java@47.239.238.254:/home/java/
+          ssh -i ./deploy/id_rsa -o StrictHostKeyChecking=no java@47.239.238.254 'bash -s' < ./deploy/start.sh
+
+

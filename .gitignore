@@ -1,0 +1,65 @@
+# 编译生成的文件  
+*.o  
+*.exe  
+*.out  
+*.a  
+*.so  
+*.dylib  
+*.dll  
+  
+# 测试编译生成的文件  
+*.test  
+  
+# Go编译缓存  
+_pkgmod  
+  
+# Go编译产生的文件  
+bin/  
+pkg/  
+  
+# 依赖管理的目录和文件  
+# 如果你的项目使用了go modules，通常不需要忽略以下目录  
+# 但如果你没有使用go modules，可能需要忽略vendor目录  
+# vendor/  
+  
+# IDE产生的文件  
+.idea/  
+*.iml  
+.vscode/  
+*.tmproj  
+  
+# 临时文件  
+*.tmp  
+*.temp  
+*.swp  
+*.swo  
+  
+# 日志文件  
+*.log  
+*.log*  
+  
+# GoLand文件  
+.idea  
+*.iws  
+*.iml  
+*.ipr  
+  
+# OS specific files  
+.DS_Store  
+Thumbs.db  
+  
+# 编译生成的覆盖率报告  
+*.coverprofile  
+  
+# Go Modules的缓存  
+#go.mod  
+#go.sum  
+  
+# 注意：通常不应该忽略go.mod和go.sum文件，除非你有特殊需求  
+# 上面的go.mod和go.sum的注释仅用于说明，实际上你应该将它们保留在版本控制中  
+  
+# 其他你可能想要忽略的文件或目录  
+# 例如，如果你使用Git进行子模块管理，但不想跟踪这些子模块  
+# */.git/  
+# 或者是特定于你项目的临时文件或目录  
+# temp_data/
