@@ -17,6 +17,7 @@ func main() {
 		route.Use(iris.Compression)
 		route.Get("/wallet/get-balance", conisController.GetTokenBalance)
 		route.Get("/wallet/get-transaction", conisController.GetTransaction)
+		route.Post("/wallet/broadcastHex", conisController.BroadcastHex)
 	}
 
 	irisApp.Listen(":8082")
