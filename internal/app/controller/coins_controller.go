@@ -148,3 +148,9 @@ func (c *CoinsController) GetBlockchainFee(ctx iris.Context) {
 		"data": resultData["data"],
 	})
 }
+
+// 更新支持的公链
+
+func (c *CoinsController) UpdateSupportChain(ctx iris.Context) {
+	oklink.HandleSupportChain()
+}
