@@ -24,7 +24,7 @@ WORKDIR /root/
 COPY --from=build /app/main .
 
 # 暴露端口（如果需要）
-EXPOSE 8083
+EXPOSE 8082
 
 # 运行应用程序
 CMD ["./main"]
