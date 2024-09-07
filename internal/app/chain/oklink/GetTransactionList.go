@@ -46,8 +46,7 @@ func GetTransactionList(chainShortName string, address string, page string,
 		Timeout: 5 * time.Second, // 设置请求超时为5秒
 	}
 	// Construct request URL
-	url := fmt.Sprintf("%s?page=%d&limit=%d&chainShortName=%s"+
-		"&address=%s&tokenContractAddress=%s&protocolType=%s",
+	url := fmt.Sprintf("%s?page=%d&limit=%d&chainShortName=%s&address=%s&tokenContractAddress=%s&protocolType=%s",
 		baseURL, page, limit, chainShortName, address, tokenContractAddress, protocolType)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
