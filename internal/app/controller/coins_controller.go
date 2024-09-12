@@ -22,7 +22,7 @@ type Response struct {
 // 获取交易记录
 
 func (c *CoinsController) GetTransaction(ctx iris.Context) {
-	chainShortName := ctx.URLParam("chainShortName")
+	chainShortName := ctx.URLParam("chain")
 	address := ctx.URLParam("address")
 	page := ctx.URLParam("page")
 	contractAddress := ctx.URLParam("contractAddress")
@@ -45,7 +45,7 @@ func (c *CoinsController) GetTransaction(ctx iris.Context) {
 // 获取钱包余额
 
 func (c *CoinsController) GetTokenBalance(ctx iris.Context) {
-	chainShortName := ctx.URLParam("chainShortName")
+	chainShortName := ctx.URLParam("chain")
 	address := ctx.URLParam("address")
 
 	if chainShortName == "" || address == "" {
@@ -78,7 +78,7 @@ func (c *CoinsController) GetTokenBalance(ctx iris.Context) {
 // 广播交易
 
 func (c *CoinsController) BroadcastHex(ctx iris.Context) {
-	chainShortName := ctx.PostValue("chainShortName")
+	chainShortName := ctx.PostValue("chain")
 	hex := ctx.PostValue("hex")
 	if chainShortName == "" || hex == "" {
 		ctx.JSON(Response{Code: "400", Msg: "param error"})
@@ -107,7 +107,7 @@ func (c *CoinsController) BroadcastHex(ctx iris.Context) {
 // 获取UTXO
 
 func (c *CoinsController) GetUTXO(ctx iris.Context) {
-	chainShortName := ctx.URLParam("chainShortName")
+	chainShortName := ctx.URLParam("chain")
 	address := ctx.URLParam("address")
 	if chainShortName == "" || address == "" {
 		ctx.JSON(Response{Code: "400", Msg: "param error"})
@@ -132,7 +132,7 @@ func (c *CoinsController) GetUTXO(ctx iris.Context) {
 // 获取手续费
 
 func (c *CoinsController) GetBlockchainFee(ctx iris.Context) {
-	chainShortName := ctx.URLParam("chainShortName")
+	chainShortName := ctx.URLParam("chain")
 	if chainShortName == "" {
 		ctx.JSON(Response{Code: "400", Msg: "param error"})
 		return
@@ -153,4 +153,29 @@ func (c *CoinsController) GetBlockchainFee(ctx iris.Context) {
 
 func (c *CoinsController) UpdateSupportChain(ctx iris.Context) {
 	oklink.HandleSupportChain()
+}
+
+// 更新token信息
+
+func (c *CoinsController) UpdateTokenInfo(ctx iris.Context) {
+	chainShortName := ctx.URLParam("chain")
+
+	oklink.FetchTokenList(chainShortName, "")
+}
+
+// 获取代币信息
+func (c *CoinsController) GetTokenInfo(ctx iris.Context) {
+	chainShortName := ctx.URLParam("chain")
+	symbol := ctx.URLParam("symbol")
+	protocolType := ctx.URLParam("protocolType")
+	if chainShortName == "" {
+		ctx.JSON(Response{Code: "400", Msg: "param error"})
+		return
+	}
+	resultData := oklink.GetTokenInfo(chainShortName, symbol, protocolType)
+	ctx.JSON(map[string]interface{}{
+		"code": "0",
+		"msg":  "",
+		"data": resultData,
+	})
 }

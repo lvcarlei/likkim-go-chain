@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-wallet/db"
+	"go-wallet/internal/app/chain/oklink"
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
-var baseTronKey = "tron:token:"
+var baseTronKey = "tokenInfo:TRON:"
 
 //TokenInfo 结构体表示每个 Token 的信息
 
@@ -43,7 +43,7 @@ func FetchTokenList(address string, protocolType string) map[string]string {
 		if protocolType == "TRC10" {
 			curlToken10(address)
 		} else if protocolType == "TRC20" {
-			curlOkLink(address)
+			oklink.FetchTokenList("TRON", address)
 		}
 	}
 	result, _ = getTokenInfoFromRedis(address)
@@ -87,7 +87,6 @@ func curlToken10(id interface{}) {
 	req.Header.Add("accept", "application/json")
 
 	res, _ := http.DefaultClient.Do(req)
-
 	defer res.Body.Close()
 	var response Response
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
@@ -108,51 +107,6 @@ func curlToken10(id interface{}) {
 
 }
 
-func curlOkLink(tokenContractAddress string) {
-	// Define base URL and initial page
-	baseURL := "https://www.oklink.com/api/v5/explorer/token/token-list"
-	page := 1
-	limit := 50 // Adjust size as needed
-	chainShortName := "TRON"
-	accessKey := "4783cafe-1710-48b4-ad2c-447a319a9f89"
-	client := &http.Client{
-		Timeout: 5 * time.Second, // 设置请求超时为5秒
-	}
-	for {
-		// Construct request URL
-		url := fmt.Sprintf("%s?page=%d&limit=%d&chainShortName=%s&tokenContractAddress=%s", baseURL, page, limit, chainShortName, tokenContractAddress)
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			log.Fatalf("Failed to create request: %v", err)
-		}
-		req.Header.Add("Ok-Access-Key", accessKey)
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Fatalf("Failed to fetch token list: %v", err)
-		}
-		defer resp.Body.Close()
-
-		// Parse the response
-		var result ApiResponse
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			log.Fatalf("Failed to decode response: %v", err)
-		}
-		// Check for success
-		if result.Code != "0" {
-			log.Fatalf("API Error: %s", result.Msg)
-		}
-		// Store tokens in Redis
-		for _, token := range result.Data[0].TokenList {
-			storeTokenListInRedisAsHash(token)
-		}
-		if strconv.Itoa(page) == result.Data[0].TotalPage || result.Data[0].TotalPage == "" {
-			break
-		}
-		page++
-		time.Sleep(100 * time.Millisecond)
-	}
-
-}
 func storeTokenListInRedisAsHash(token Token) {
 	rdb := db.GetClient()
 	key := baseTronKey + token.Address
@@ -167,6 +121,11 @@ func storeTokenListInRedisAsHash(token Token) {
 	if err != nil {
 		log.Fatalf("Failed to store token in Redis: %v", err)
 	}
+	//key2 := fmt.Sprintf("%s%s:%s", baseTronKey, token.Symbol, token.ProtocolType)
+	//_, err = rdb.Do(context.Background(), "COPY", key, key2).Result()
+	//if err != nil {
+	//	log.Fatalf("Error copying key: %v", err)
+	//}
 }
 
 func getTokenInfoFromRedis(address string) (map[string]string, error) {

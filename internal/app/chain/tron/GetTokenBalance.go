@@ -67,6 +67,9 @@ func GetTokenBalance(mainAddress string) ([]map[string]interface{}, error) {
 		log.Printf("Failed to decode response: %v", err)
 		return tokenList, nil
 	}
+	if len(result.Data) == 0 {
+		return tokenList, nil
+	}
 	trxBalance := result.Data[0].Balance
 	tokenList = append(tokenList, map[string]interface{}{
 		"symbol":          "TRX",

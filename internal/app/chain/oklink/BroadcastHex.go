@@ -21,7 +21,6 @@ type BroadcastData struct {
 
 func BroadcastHex(chainShortName string, hex string) (map[string]interface{}, error) {
 	url := OKLINK_ENPOINT + "/api/v5/explorer/transaction/publish-tx"
-	accessKey := "4783cafe-1710-48b4-ad2c-447a319a9f89"
 	payload := map[string]interface{}{
 		"signedTx":       hex,
 		"chainShortName": chainShortName,
@@ -38,7 +37,7 @@ func BroadcastHex(chainShortName string, hex string) (map[string]interface{}, er
 	// 设置请求头，表明发送的数据是JSON
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
-	req.Header.Add("Ok-Access-Key", accessKey)
+	req.Header.Add("Ok-Access-Key", OKLINK_ACCESS_KEY)
 
 	// 发送请求
 	client := &http.Client{

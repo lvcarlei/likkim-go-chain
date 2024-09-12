@@ -65,6 +65,7 @@ func GetTransactionList(chainShortName string, address string, page string,
 	// Check for success
 	if result.Code != "0" {
 		log.Printf("Oklink GetTransactionList API Error: %s", result.Msg)
+		return RespData{}
 	}
 	return result.Data[0]
 }

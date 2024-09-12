@@ -3,10 +3,9 @@ package sol
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"log"
 	"os"
-
-	"github.com/go-redis/redis/v8"
 )
 
 // TokenInfo 结构体表示每个 Token 的信息
@@ -18,6 +17,8 @@ type TokenInfo struct {
 	Decimals float64 `json:"decimals"`
 	LogoURI  string  `json:"logoURI"`
 }
+
+var baseSolKey = "tokenInfo:SOL:"
 
 func GetchTokenList() {
 	// 连接到 Redis
@@ -85,7 +86,7 @@ func loadTokenListFromFile(filename string) ([]TokenInfo, error) {
 func storeTokenListInRedisAsHash(rdb *redis.Client, tokenList []TokenInfo) error {
 	for _, token := range tokenList {
 		// 将每个 Token 的信息存储为 HashMap
-		tokenKey := "sol:token:" + token.Address
+		tokenKey := baseSolKey + token.Address
 		err := rdb.HSet(ctx, tokenKey, map[string]interface{}{
 			"name":     token.Name,
 			"symbol":   token.Symbol,
@@ -96,13 +97,18 @@ func storeTokenListInRedisAsHash(rdb *redis.Client, tokenList []TokenInfo) error
 		if err != nil {
 			return err
 		}
+		//key2 := baseSolKey + token.Symbol
+		//_, err = rdb.Do(context.Background(), "COPY", tokenKey, key2).Result()
+		//if err != nil {
+		//	log.Fatalf("Error copying key: %v", err)
+		//}
 	}
 	return nil
 }
 
 // getTokenInfoFromRedis 从 Redis 中获取指定地址的 Token 信息
 func getTokenInfoFromRedis(rdb *redis.Client, address string) (map[string]string, error) {
-	tokenKey := "sol:token:" + address
+	tokenKey := baseSolKey + address
 	result, err := rdb.HGetAll(ctx, tokenKey).Result()
 	if err != nil {
 		return nil, err

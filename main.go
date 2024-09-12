@@ -21,7 +21,9 @@ func main() {
 		route.Get("/chain/get-utxo", conisController.GetUTXO)
 		route.Get("/chain/get-blockchain-fee", conisController.GetBlockchainFee)
 		route.Post("/wallet/broadcastHex", conisController.BroadcastHex)
-		route.Get("/chain/update-support-chain", conisController.UpdateSupportChain)
+		route.Get("/manual/update-support-chain", conisController.UpdateSupportChain)
+		route.Get("/manual/update-token-info", conisController.UpdateTokenInfo)
+		route.Get("/chain/token-info", conisController.GetTokenInfo)
 	}
 
 	irisApp.Listen(":8082")
