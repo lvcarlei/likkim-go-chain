@@ -41,7 +41,7 @@ func GetTokenInfo(chainShortName string, symbol string, protocolType string) map
 
 func FetchTokenList(chainShortName string, tokenContractAddress string) {
 	// Define base URL and initial page
-	baseURL := "https://www.oklink.com/api/v5/explorer/token/token-list"
+	baseURL := OKLINK_ENPOINT + "/api/v5/explorer/token/token-list"
 	page := 1
 	limit := 50 // Adjust size as needed
 	client := &http.Client{

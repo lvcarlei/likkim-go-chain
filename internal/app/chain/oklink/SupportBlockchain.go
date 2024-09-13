@@ -45,7 +45,7 @@ func getSupportedBlockchains() (BlockchainResponse, error) {
 	var result BlockchainResponse
 
 	// OKLink API URL
-	url := "https://www.oklink.com/api/v5/explorer/blockchain/summary"
+	url := OKLINK_ENPOINT + "/api/v5/explorer/blockchain/summary"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatalf("Error creating request: %v", err)

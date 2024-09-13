@@ -14,16 +14,20 @@ func main() {
 
 	route := irisApp.Party("/api")
 	{
-		conisController := controller.CoinsController{}
+		addressController := controller.AddressController{}
+		blockchainController := controller.BlockchainController{}
+		tokenController := controller.TokenController{}
+		transactionController := controller.TransactionController{}
+		blockController := controller.BlockController{}
 		route.Use(iris.Compression)
-		route.Get("/wallet/get-balance", conisController.GetTokenBalance)
-		route.Get("/wallet/get-transaction", conisController.GetTransaction)
-		route.Get("/chain/get-utxo", conisController.GetUTXO)
-		route.Get("/chain/get-blockchain-fee", conisController.GetBlockchainFee)
-		route.Post("/wallet/broadcastHex", conisController.BroadcastHex)
-		route.Get("/manual/update-support-chain", conisController.UpdateSupportChain)
-		route.Get("/manual/update-token-info", conisController.UpdateTokenInfo)
-		route.Get("/chain/token-info", conisController.GetTokenInfo)
+		route.Get("/wallet/balance", addressController.GetTokenBalance)
+		route.Get("/wallet/transaction", transactionController.GetTransaction)
+		route.Get("/chain/utxo", blockchainController.GetUTXO)
+		route.Get("/chain/blockchain-fee", blockchainController.GetBlockchainFee)
+		route.Post("/wallet/broadcastHex", blockchainController.BroadcastHex)
+		route.Get("/manual/update-support-chain", blockchainController.UpdateSupportChain)
+		route.Get("/manual/update-token-info", tokenController.UpdateTokenInfo)
+		route.Get("/chain/blocklist", blockController.GetBlockList)
 	}
 
 	irisApp.Listen(":8082")
