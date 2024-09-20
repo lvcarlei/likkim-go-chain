@@ -47,7 +47,7 @@ type AccountResponse struct {
 	Balance         int64               `json:"Balance"`
 }
 
-func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
+func GetTokenBalance(mainAddress string) (respData oklink.BalanceResp, err error) {
 	url := helper.MainnetRPCEndpoint + fmt.Sprintf("/v1/accounts/%s", mainAddress)
 	//var tokenList []map[string]interface{}
 	req, _ := http.NewRequest("GET", url, nil)
@@ -57,7 +57,7 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("Failed to fetch token list: %v", err)
-		return data, nil
+		return respData, nil
 	}
 	defer resp.Body.Close()
 	// 创建 AccountResponse 实例
@@ -67,28 +67,19 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 	// 解析 JSON 数据
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		log.Printf("Failed to decode response: %v", err)
-		return data, nil
+		return respData, nil
 	}
 	if len(result.Data) == 0 {
-		return data, nil
+		return respData, nil
 	}
 	var mainBalanceDeatil oklink.BlanceRespDetail
-	var tokenBalance oklink.TokenBalance
 	trxBalance := result.Data[0].Balance
-	// tokenList = append(tokenList, map[string]interface{}{
-	// 	"symbol":          "TRX",
-	// 	"balance":         helper.ConvertToReadableAmount(trxBalance, 6),
-	// 	"isNative":        true,
-	// 	"name":            "TRON",
-	// 	"protocolType":    "",
-	// 	"contractAddress": "",
-	// })
 	mainBalanceDeatil.Address = mainAddress
 	mainBalanceDeatil.Balance = helper.ConvertToReadableAmount(trxBalance, 6)
 	mainBalanceDeatil.ContractAddress = ""
 	mainBalanceDeatil.IsNative = true
 	mainBalanceDeatil.Symbol = "TRX"
-	data.MainBalanceData = append(data.MainBalanceData, mainBalanceDeatil)
+	respData.MainBalanceData = append(respData.MainBalanceData, mainBalanceDeatil)
 	for _, account := range result.Data {
 		for _, token := range account.TRC20 {
 			for address, balance := range token {
@@ -100,7 +91,7 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 				tokenDetail.Name = tokenInfo["name"]
 				tokenDetail.ContractAddress = tokenInfo["address"]
 				tokenDetail.IsNative = false
-				tokenBalance.Tokenlist = append(tokenBalance.Tokenlist, tokenDetail)
+				respData.TokenBalanceData.Tokenlist = append(respData.TokenBalanceData.Tokenlist, tokenDetail)
 			}
 		}
 		for _, trc10token := range account.AssetV2 {
@@ -112,9 +103,11 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 			tokenDetail.Name = tokenInfo["name"]
 			tokenDetail.ContractAddress = tokenInfo["address"]
 			tokenDetail.IsNative = false
-			tokenBalance.Tokenlist = append(tokenBalance.Tokenlist, tokenDetail)
+			respData.TokenBalanceData.Tokenlist = append(respData.TokenBalanceData.Tokenlist, tokenDetail)
 		}
 	}
-	return data, nil
+	respData.TokenBalanceData.Page = "1"
+	respData.TokenBalanceData.TotalPage = "1"
+	return respData, nil
 
 }

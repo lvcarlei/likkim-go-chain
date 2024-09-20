@@ -26,7 +26,7 @@ func (c *AddressController) GetTokenBalance(ctx iris.Context) {
 	case "SOL":
 		info, _ := sol.GetTokenBalance(address)
 		resultData = info
-	case "TRON1":
+	case "TRON":
 		info, _ := tron.GetTokenBalance(address)
 		resultData = info
 	default:

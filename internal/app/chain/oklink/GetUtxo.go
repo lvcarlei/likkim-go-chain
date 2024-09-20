@@ -34,7 +34,7 @@ func GetUTXO(chainShortName string, address string, page string) (map[string]int
 		Timeout: 5 * time.Second, // 设置请求超时为5秒
 	}
 	// Construct request URL
-	url := fmt.Sprintf("%s?page=%d&limit=%d&chainShortName=%s&address=%s",
+	url := fmt.Sprintf("%s?page=%s&limit=%d&chainShortName=%s&address=%s",
 		baseURL, page, limit, chainShortName, address)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

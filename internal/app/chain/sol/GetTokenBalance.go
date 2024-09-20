@@ -13,7 +13,7 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
+func GetTokenBalance(mainAddress string) (respData oklink.BalanceResp, err error) {
 	// Create a new Solana client
 	c := GetClient()
 	var address solana.PublicKey = solana.MustPublicKeyFromBase58(mainAddress)
@@ -25,7 +25,7 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 	// Initialize the result slice
 	//var tokenList []map[string]interface{}
 	var mainBalanceDeatil oklink.BlanceRespDetail
-	var tokenBalance oklink.TokenBalance
+	//var tokenBalance oklink.TokenBalance
 	//var tokenBalanceDetail oklink.BlanceRespDetail
 	if err != nil {
 		log.Println("failed to get balance", err)
@@ -39,7 +39,7 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 		mainBalanceDeatil.ContractAddress = ""
 		mainBalanceDeatil.IsNative = true
 		mainBalanceDeatil.Symbol = "sol"
-		data.MainBalanceData = append(data.MainBalanceData, mainBalanceDeatil)
+		respData.MainBalanceData = append(respData.MainBalanceData, mainBalanceDeatil)
 
 	}
 
@@ -87,9 +87,9 @@ func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 		tokenDetail.Name = tokenResult["name"]
 		tokenDetail.ContractAddress = mint
 		tokenDetail.IsNative = isNative
-		tokenBalance.Tokenlist = append(tokenBalance.Tokenlist, tokenDetail)
+		respData.TokenBalanceData.Tokenlist = append(respData.TokenBalanceData.Tokenlist, tokenDetail)
 	}
-	tokenBalance.Page = "1"
-	tokenBalance.TotalPage = "1"
-	return data, nil
+	respData.TokenBalanceData.Page = "1"
+	respData.TokenBalanceData.TotalPage = "1"
+	return respData, nil
 }
