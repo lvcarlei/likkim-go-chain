@@ -2,25 +2,25 @@ package sol
 
 import (
 	"context"
+	"github.com/gagliardetto/solana-go/rpc"
 	"sync"
-
-	"github.com/blocto/solana-go-sdk/client"
-	"github.com/blocto/solana-go-sdk/rpc"
 )
 
 var (
 	once      sync.Once
 	ctx       = context.Background()
-	rpcClient *client.Client
+	rpcClient *rpc.Client
 )
 
 func initialize() {
 	once.Do(func() {
-		rpcClient = client.NewClient(rpc.MainnetRPCEndpoint)
+		//endpoint := rpc.MainNetBeta_RPC
+		endpoint := "https://solana-mainnet.g.alchemy.com/v2/LJ6in8xgKPw5QyF69bftR3_kH7ChpoF4"
+		rpcClient = rpc.New(endpoint)
 	})
 }
 
-func GetClient() *client.Client {
+func GetClient() *rpc.Client {
 	if rpcClient == nil {
 		initialize()
 	}

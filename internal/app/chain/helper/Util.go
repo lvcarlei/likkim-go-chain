@@ -1,4 +1,4 @@
-package tron
+package helper
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -14,6 +15,24 @@ const (
 	TestnetRPCEndpoint  = "https://api.shasta.trongrid.io"
 	MainnetRPCEndpoint  = "https://api.trongrid.io"
 )
+
+func DateTimeToUnix(timeStr string) (timestampStr string) {
+	// 定义时间字符串及其格式
+	timeFormat := "2006-01-02 15:04:05 -0700 MST"
+
+	// 解析时间字符串为 time.Time 对象
+	t, err := time.Parse(timeFormat, timeStr)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return
+	}
+	// 将 time.Time 对象转换为 Unix 毫秒时间戳
+	timestampMilli := t.UnixMilli()
+	timestampStr = strconv.FormatInt(timestampMilli, 10)
+
+	return timestampStr
+
+}
 
 // ConvertToBigInt takes an interface{} and converts it to *big.Int
 func ConvertToBigInt(value interface{}) (*big.Int, error) {
@@ -36,6 +55,9 @@ func ConvertToBigInt(value interface{}) (*big.Int, error) {
 		if !ok {
 			return nil, fmt.Errorf("invalid float format")
 		}
+	case reflect.Uint64:
+		// If value is a uint64, convert it to big.Int
+		bigIntValue.SetUint64(v.Uint())
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", value)
 	}

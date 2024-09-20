@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-type ApiResponse struct {
-	Code string     `json:"code"`
-	Msg  string     `json:"msg"`
-	Data []RespData `json:"data"`
+type TransactionResponse struct {
+	Code string                `json:"code"`
+	Msg  string                `json:"msg"`
+	Data []TransactionRespData `json:"data"`
 }
 type Transaction struct {
 	TxId            string `json:"txId"`
@@ -28,7 +28,7 @@ type Transaction struct {
 	TokenContractAddress string `json:"tokenContractAddress"`
 	//ChallengeStatus      string `json:"challengeStatus"`
 }
-type RespData struct {
+type TransactionRespData struct {
 	Page            string        `json:"page"`
 	Limit           string        `json:"limit"`
 	TotalPage       string        `json:"totalPage"`
@@ -38,7 +38,7 @@ type RespData struct {
 }
 
 func GetTransactionList(chainShortName string, address string, page string,
-	tokenContractAddress string, protocolType string) (OklinkResp RespData) {
+	tokenContractAddress string, protocolType string) (OklinkResp TransactionRespData) {
 	baseURL := OKLINK_ENPOINT + "/api/v5/explorer/address/transaction-list"
 	limit := 20 // Adjust size as needed
 	accessKey := OKLINK_ACCESS_KEY
@@ -58,14 +58,14 @@ func GetTransactionList(chainShortName string, address string, page string,
 		log.Printf("Failed to fetch token list: %v", err)
 	}
 	defer resp.Body.Close()
-	var result ApiResponse
+	var result TransactionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		log.Printf("Failed to decode response: %v", err)
 	}
 	// Check for success
 	if result.Code != "0" {
 		log.Printf("Oklink GetTransactionList API Error: %s", result.Msg)
-		return RespData{}
+		return TransactionRespData{}
 	}
 	return result.Data[0]
 }

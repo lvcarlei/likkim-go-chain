@@ -3,6 +3,8 @@ package tron
 import (
 	"encoding/json"
 	"fmt"
+	"go-wallet/internal/app/chain/helper"
+	"go-wallet/internal/app/chain/oklink"
 	"log"
 	"net/http"
 )
@@ -45,9 +47,9 @@ type AccountResponse struct {
 	Balance         int64               `json:"Balance"`
 }
 
-func GetTokenBalance(mainAddress string) ([]map[string]interface{}, error) {
-	url := MainnetRPCEndpoint + fmt.Sprintf("/v1/accounts/%s", mainAddress)
-	var tokenList []map[string]interface{}
+func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
+	url := helper.MainnetRPCEndpoint + fmt.Sprintf("/v1/accounts/%s", mainAddress)
+	//var tokenList []map[string]interface{}
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("accept", "application/json")
@@ -55,7 +57,7 @@ func GetTokenBalance(mainAddress string) ([]map[string]interface{}, error) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("Failed to fetch token list: %v", err)
-		return tokenList, nil
+		return data, nil
 	}
 	defer resp.Body.Close()
 	// 创建 AccountResponse 实例
@@ -65,46 +67,54 @@ func GetTokenBalance(mainAddress string) ([]map[string]interface{}, error) {
 	// 解析 JSON 数据
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		log.Printf("Failed to decode response: %v", err)
-		return tokenList, nil
+		return data, nil
 	}
 	if len(result.Data) == 0 {
-		return tokenList, nil
+		return data, nil
 	}
+	var mainBalanceDeatil oklink.BlanceRespDetail
+	var tokenBalance oklink.TokenBalance
 	trxBalance := result.Data[0].Balance
-	tokenList = append(tokenList, map[string]interface{}{
-		"symbol":          "TRX",
-		"balance":         ConvertToReadableAmount(trxBalance, 6),
-		"isNative":        true,
-		"name":            "TRON",
-		"protocolType":    "",
-		"contractAddress": "",
-	})
+	// tokenList = append(tokenList, map[string]interface{}{
+	// 	"symbol":          "TRX",
+	// 	"balance":         helper.ConvertToReadableAmount(trxBalance, 6),
+	// 	"isNative":        true,
+	// 	"name":            "TRON",
+	// 	"protocolType":    "",
+	// 	"contractAddress": "",
+	// })
+	mainBalanceDeatil.Address = mainAddress
+	mainBalanceDeatil.Balance = helper.ConvertToReadableAmount(trxBalance, 6)
+	mainBalanceDeatil.ContractAddress = ""
+	mainBalanceDeatil.IsNative = true
+	mainBalanceDeatil.Symbol = "TRX"
+	data.MainBalanceData = append(data.MainBalanceData, mainBalanceDeatil)
 	for _, account := range result.Data {
 		for _, token := range account.TRC20 {
 			for address, balance := range token {
 				tokenInfo := FetchTokenList(address, "TRC20")
-				tokenList = append(tokenList, map[string]interface{}{
-					"symbol":          tokenInfo["symbol"],
-					"balance":         ConvertToReadableAmount(balance, tokenInfo["decimals"]),
-					"isNative":        false,
-					"name":            tokenInfo["name"],
-					"protocolType":    tokenInfo["protocolType"],
-					"contractAddress": tokenInfo["address"],
-				})
+				var tokenDetail oklink.BlanceRespDetail
+				tokenDetail.Address = ""
+				tokenDetail.Symbol = tokenInfo["symbol"]
+				tokenDetail.Balance = helper.ConvertToReadableAmount(balance, tokenInfo["decimals"])
+				tokenDetail.Name = tokenInfo["name"]
+				tokenDetail.ContractAddress = tokenInfo["address"]
+				tokenDetail.IsNative = false
+				tokenBalance.Tokenlist = append(tokenBalance.Tokenlist, tokenDetail)
 			}
 		}
 		for _, trc10token := range account.AssetV2 {
 			tokenInfo := FetchTokenList(trc10token.Key, "TRC10")
-			tokenList = append(tokenList, map[string]interface{}{
-				"symbol":          tokenInfo["symbol"],
-				"balance":         ConvertToReadableAmount(trc10token.Value, tokenInfo["decimals"]),
-				"isNative":        false,
-				"name":            tokenInfo["name"],
-				"protocolType":    tokenInfo["protocolType"],
-				"contractAddress": tokenInfo["address"],
-			})
+			var tokenDetail oklink.BlanceRespDetail
+			tokenDetail.Address = ""
+			tokenDetail.Symbol = tokenInfo["symbol"]
+			tokenDetail.Balance = helper.ConvertToReadableAmount(trc10token.Value, tokenInfo["decimals"])
+			tokenDetail.Name = tokenInfo["name"]
+			tokenDetail.ContractAddress = tokenInfo["address"]
+			tokenDetail.IsNative = false
+			tokenBalance.Tokenlist = append(tokenBalance.Tokenlist, tokenDetail)
 		}
 	}
-	return tokenList, nil
+	return data, nil
 
 }

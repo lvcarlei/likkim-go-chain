@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"fmt"
-	"github.com/kataras/iris/v12"
+	"go-wallet/internal/app/chain/oklink"
 	"go-wallet/internal/app/chain/sol"
 	"go-wallet/internal/app/chain/tron"
+
+	"github.com/kataras/iris/v12"
 )
 
 type AddressController struct{}
@@ -19,21 +20,24 @@ func (c *AddressController) GetTokenBalance(ctx iris.Context) {
 		ctx.JSON(Response{Code: "400", Msg: "param error"})
 		return
 	}
-	var resultData []map[string]interface{}
-	if chainShortName == "SOL" {
+	//var resultData []map[string]interface{}
+	var resultData oklink.BalanceResp
+	switch chainShortName {
+	case "SOL":
 		info, _ := sol.GetTokenBalance(address)
 		resultData = info
-	} else if chainShortName == "TRON" {
+	case "TRON1":
 		info, _ := tron.GetTokenBalance(address)
 		resultData = info
-	} else {
-		ctx.JSON(Response{Code: "400", Msg: fmt.Sprintf("%s is not supporting", chainShortName)})
-		return
+	default:
+		info, _ := oklink.GetBalance(address, chainShortName)
+		//ctx.JSON(Response{Code: "400", Msg: fmt.Sprintf("%s is not supporting", chainShortName)})
+		resultData = info
 	}
-	if len(resultData) == 0 {
-		ctx.JSON(Response{Code: "500", Msg: "server error"})
-		return
-	}
+	// if len(resultData) == 0 {
+	// 	ctx.JSON(Response{Code: "500", Msg: "server error"})
+	// 	return
+	// }
 	ctx.JSON(map[string]interface{}{
 		"code": "0",
 		"msg":  "",

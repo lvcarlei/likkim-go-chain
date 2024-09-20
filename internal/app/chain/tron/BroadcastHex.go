@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go-wallet/internal/app/chain/helper"
 	"log"
 	"net/http"
 	"time"
@@ -40,7 +41,7 @@ type Parameter struct {
 }
 
 func BroadcastHex(hex string) (map[string]interface{}, error) {
-	url := MainnetRPCEndpoint + fmt.Sprintf("/wallet/broadcasthex")
+	url := helper.MainnetRPCEndpoint + fmt.Sprintf("/wallet/broadcasthex")
 	// 需要发送的JSON数据
 	payload := map[string]interface{}{
 		"transaction": hex,

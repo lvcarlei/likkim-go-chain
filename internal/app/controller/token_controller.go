@@ -3,11 +3,13 @@ package controller
 import (
 	"github.com/kataras/iris/v12"
 	"go-wallet/internal/app/chain/oklink"
+	"go-wallet/internal/app/chain/sol"
 )
 
 type TokenController struct{}
 
 // 获取代币信息
+
 func (c *TokenController) GetTokenInfo(ctx iris.Context) {
 	chainShortName := ctx.URLParam("chain")
 	symbol := ctx.URLParam("symbol")
@@ -28,6 +30,9 @@ func (c *TokenController) GetTokenInfo(ctx iris.Context) {
 
 func (c *TokenController) UpdateTokenInfo(ctx iris.Context) {
 	chainShortName := ctx.URLParam("chain")
-
+	if chainShortName == "SOL" {
+		sol.GetchTokenList()
+		return
+	}
 	oklink.FetchTokenList(chainShortName, "")
 }

@@ -2,73 +2,94 @@ package sol
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"go-wallet/db"
+	"go-wallet/internal/app/chain/oklink"
 	"log"
 	"strconv"
 
-	"go-wallet/db"
-
-	"github.com/blocto/solana-go-sdk/common"
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func GetTokenBalance(mainAddress string) ([]map[string]interface{}, error) {
+func GetTokenBalance(mainAddress string) (data oklink.BalanceResp, err error) {
 	// Create a new Solana client
 	c := GetClient()
-	// Get balance in lamports
+	var address solana.PublicKey = solana.MustPublicKeyFromBase58(mainAddress)
 	balance, err := c.GetBalance(
 		context.TODO(),
-		mainAddress,
+		address,
+		"",
 	)
 	// Initialize the result slice
-	var tokenList []map[string]interface{}
+	//var tokenList []map[string]interface{}
+	var mainBalanceDeatil oklink.BlanceRespDetail
+	var tokenBalance oklink.TokenBalance
+	//var tokenBalanceDetail oklink.BlanceRespDetail
 	if err != nil {
 		log.Println("failed to get balance", err)
 	} else {
-		lamports := uint64(balance)
+		lamports := balance.Value
 		lamportsPerSol := uint64(1000000000) // 1 SOL = 1,000,000,000 Lamports
 		solBalance := float64(lamports) / float64(lamportsPerSol)
 		solBalanceStr := strconv.FormatFloat(solBalance, 'f', -1, 64)
-		tokenList = append(tokenList, map[string]interface{}{
-			"symbol":   "sol",
-			"balance":  solBalanceStr,
-			"isNative": true,
-		})
+		mainBalanceDeatil.Address = mainAddress
+		mainBalanceDeatil.Balance = solBalanceStr
+		mainBalanceDeatil.ContractAddress = ""
+		mainBalanceDeatil.IsNative = true
+		mainBalanceDeatil.Symbol = "sol"
+		data.MainBalanceData = append(data.MainBalanceData, mainBalanceDeatil)
+
 	}
 
 	// Get token accounts
-	tokenAccounts, err := c.GetTokenAccountsByOwnerWithContextByProgram(context.TODO(), mainAddress, common.TokenProgramID.String())
+	tokenAccounts, err := c.GetTokenAccountsByOwner(context.Background(), address, &rpc.GetTokenAccountsConfig{
+		ProgramId: &solana.TokenProgramID},
+		&rpc.GetTokenAccountsOpts{
+			Encoding: solana.EncodingJSONParsed,
+		})
 	if err != nil {
-		log.Println("failed to get token account by owner: ", err)
+		log.Println("failed to get SOL token account by owner: ", err)
 	}
 
 	// Get Redis client
 	redisClient := db.GetClient()
-
+	var parsedData map[string]interface{}
 	// Iterate over token accounts
 	for _, tokenAccount := range tokenAccounts.Value {
-		// Get token account balance
-		tokenBalance, err := c.GetTokenAccountBalance(context.TODO(), tokenAccount.PublicKey.String())
-		if err != nil {
-			log.Printf("failed to get token account balance: %v", err)
-			continue
-		}
-
 		// Get token metadata from Redis
-		dataKey := "sol:token:" + tokenAccount.Mint.String()
+		rawJSON := tokenAccount.Account.Data.GetRawJSON()
+		if err != nil {
+			log.Fatalf("SOL解析代币账户信息失败: %v", err)
+		}
+		if err := json.Unmarshal([]byte(rawJSON), &parsedData); err != nil {
+			log.Fatalf("SOL解析 JSON 数据失败: %v", err)
+		}
+		data := parsedData["parsed"].(map[string]interface{})["info"]
+		tokenAmount := data.(map[string]interface{})["tokenAmount"].(map[string]interface{})
+		uiAmount := tokenAmount["uiAmount"].(float64)
+		isNative := data.(map[string]interface{})["isNative"].(bool)
+		mint := data.(map[string]interface{})["mint"].(string)
+		//tokenAddress := data.(map[string]interface{})["owner"].(string)
+		//tokenAddress := tokenAccount.Account.Owner.String()
+		tokenAddress := tokenAccount.Pubkey.String()
+		dataKey := "tokenInfo:SOL:" + mint
 		tokenResult, err := redisClient.HGetAll(context.TODO(), dataKey).Result()
 		if err != nil {
 			log.Printf("failed to get fields from Redis: %v", err)
 		}
-
-		// Extract token symbol and balance
 		symbol := tokenResult["symbol"]
-		balanceStr := tokenBalance.UIAmountString
-
-		// Append token balance information
-		tokenList = append(tokenList, map[string]interface{}{
-			"symbol":   symbol,
-			"balance":  balanceStr,
-			"isNative": false,
-		})
+		var tokenDetail oklink.BlanceRespDetail
+		tokenDetail.Address = tokenAddress
+		tokenDetail.Symbol = symbol
+		tokenDetail.Balance = fmt.Sprintf("%f", uiAmount)
+		tokenDetail.Name = tokenResult["name"]
+		tokenDetail.ContractAddress = mint
+		tokenDetail.IsNative = isNative
+		tokenBalance.Tokenlist = append(tokenBalance.Tokenlist, tokenDetail)
 	}
-	return tokenList, nil
+	tokenBalance.Page = "1"
+	tokenBalance.TotalPage = "1"
+	return data, nil
 }
