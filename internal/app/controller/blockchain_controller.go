@@ -1,9 +1,11 @@
 package controller
 
 import (
-	"github.com/kataras/iris/v12"
 	"go-wallet/internal/app/chain/oklink"
+	"go-wallet/internal/app/chain/sol"
 	"go-wallet/internal/app/chain/tron"
+
+	"github.com/kataras/iris/v12"
 )
 
 type BlockchainController struct{}
@@ -26,11 +28,14 @@ func (c *BlockchainController) BroadcastHex(ctx iris.Context) {
 		ctx.JSON(Response{Code: "400", Msg: "param error"})
 		return
 	}
-	var resultData map[string]interface{}
+	var resultData oklink.BroadcastResult
 	var err error
-	if chainShortName == "TRON" {
+	switch chainShortName {
+	case "TRON":
 		resultData, err = tron.BroadcastHex(hex)
-	} else {
+	case "SOLANA":
+		resultData, err = sol.BroadcastHex(hex)
+	default:
 		resultData, err = oklink.BroadcastHex(chainShortName, hex)
 	}
 	if err != nil {
@@ -38,10 +43,10 @@ func (c *BlockchainController) BroadcastHex(ctx iris.Context) {
 		return
 	}
 	ctx.JSON(Response{
-		Code: resultData["code"].(string),
+		Code: resultData.Code,
 		Msg:  "",
 		Data: map[string]interface{}{
-			"txid": resultData["txid"].(string),
+			"txid": resultData.Txid,
 		},
 	})
 }

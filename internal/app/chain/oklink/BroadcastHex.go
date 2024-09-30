@@ -18,8 +18,12 @@ type BroadcastData struct {
 	ChainShortName string `json:"chainShortName"`
 	Txid           string `json:"txid"`
 }
+type BroadcastResult struct {
+	Txid string
+	Code string
+}
 
-func BroadcastHex(chainShortName string, hex string) (map[string]interface{}, error) {
+func BroadcastHex(chainShortName string, hex string) (BroadcastResult, error) {
 	url := OKLINK_ENPOINT + "/api/v5/explorer/transaction/publish-tx"
 	payload := map[string]interface{}{
 		"signedTx":       hex,
@@ -62,11 +66,9 @@ func BroadcastHex(chainShortName string, hex string) (map[string]interface{}, er
 		log.Printf("Broadcast Oklink API Error: %s, code: %s", result.Msg, result.Code)
 		code = "1"
 	}
-	data := map[string]interface{}{
-		"txid": txid,
-		"code": code,
-	}
-
+	data := BroadcastResult{}
+	data.Txid = txid
+	data.Code = code
 	return data, err
 
 }

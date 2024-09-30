@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-wallet/internal/app/chain/helper"
+	"go-wallet/internal/app/chain/oklink"
 	"log"
 	"net/http"
 	"time"
@@ -40,7 +41,7 @@ type Parameter struct {
 	Value   string `json:"value"`
 }
 
-func BroadcastHex(hex string) (map[string]interface{}, error) {
+func BroadcastHex(hex string) (oklink.BroadcastResult, error) {
 	url := helper.MainnetRPCEndpoint + fmt.Sprintf("/wallet/broadcasthex")
 	// 需要发送的JSON数据
 	payload := map[string]interface{}{
@@ -78,10 +79,8 @@ func BroadcastHex(hex string) (map[string]interface{}, error) {
 		log.Println("Failed to broadcast transaction:", result.Message, result.Code)
 		code = "1"
 	}
-
-	data := map[string]interface{}{
-		"code": code,
-		"txid": result.Txid,
-	}
+	data := oklink.BroadcastResult{}
+	data.Txid = result.Txid
+	data.Code = code
 	return data, err
 }

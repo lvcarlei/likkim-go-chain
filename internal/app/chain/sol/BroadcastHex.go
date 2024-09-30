@@ -2,12 +2,13 @@ package sol
 
 import (
 	"context"
+	"go-wallet/internal/app/chain/oklink"
 	"log"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-func BroadcastHex(hex string) (map[string]interface{}, error) {
+func BroadcastHex(hex string) (oklink.BroadcastResult, error) {
 	signedTransaction, err := solana.TransactionFromBase58(hex)
 	if err != nil {
 		log.Fatalf("Failed to decode signed transaction: %v", err)
@@ -18,10 +19,8 @@ func BroadcastHex(hex string) (map[string]interface{}, error) {
 		log.Fatalf("SOL Failed to send transaction: %v", err)
 		code = "1"
 	}
-
-	data := map[string]interface{}{
-		"code": code,
-		"txid": txSignature,
-	}
+	data := oklink.BroadcastResult{}
+	data.Txid = txSignature.String()
+	data.Code = code
 	return data, err
 }
