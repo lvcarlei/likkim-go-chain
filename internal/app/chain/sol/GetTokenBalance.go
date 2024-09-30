@@ -74,7 +74,7 @@ func GetTokenBalance(mainAddress string) (respData oklink.BalanceResp, err error
 		//tokenAddress := data.(map[string]interface{})["owner"].(string)
 		//tokenAddress := tokenAccount.Account.Owner.String()
 		tokenAddress := tokenAccount.Pubkey.String()
-		dataKey := "tokenInfo:SOL:" + mint
+		dataKey := baseSolKey + mint
 		tokenResult, err := redisClient.HGetAll(context.TODO(), dataKey).Result()
 		if err != nil {
 			log.Printf("failed to get fields from Redis: %v", err)

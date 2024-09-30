@@ -58,6 +58,8 @@ func ConvertToBigInt(value interface{}) (*big.Int, error) {
 	case reflect.Uint64:
 		// If value is a uint64, convert it to big.Int
 		bigIntValue.SetUint64(v.Uint())
+	case reflect.Uint8:
+		bigIntValue.SetUint64(uint64(v.Uint()))
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", value)
 	}

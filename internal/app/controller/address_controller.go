@@ -23,7 +23,7 @@ func (c *AddressController) GetTokenBalance(ctx iris.Context) {
 	//var resultData []map[string]interface{}
 	var resultData oklink.BalanceResp
 	switch chainShortName {
-	case "SOL":
+	case "SOLANA":
 		info, _ := sol.GetTokenBalance(address)
 		resultData = info
 	case "TRON":
